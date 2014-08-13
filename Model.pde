@@ -11,7 +11,7 @@ import java.util.List;
 static class Model extends LXModel {
 
   public static final int NUM_STRIPS = 24; // Actual number of strips per side
-  public static final float STRIP_SPACING = 2*INCHES;
+  public static final float STRIP_SPACING = 2.25*INCHES;
 
   public final List<Strip> strips;
 
