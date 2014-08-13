@@ -18,10 +18,6 @@ final static float METER = 39.37*INCHES;
 final static String FCSERVER_HOST = "127.0.0.1";
 final static int FCSERVER_PORT = 7890;
 
-// Car Components (used for rendering the model)
-final static float CAR_BODY_HEIGHT = 9.5*FEET;
-final static float CAR_BODY_LENGTH = 16*FEET;
-
 // Global engine objects
 Model model;
 P2LX lx;
@@ -112,8 +108,6 @@ void setup() {
     .setRadius(34*FEET)
     .setTheta(PI/6)
     .addComponent(new UIPointCloud(lx).setPointWeight(2))
-    .addComponent(new CarBodyWalls())
-    .addComponent(new CarCabinWalls())
   );
   lx.ui.addLayer(new UIChannelControl(lx.ui, lx, 4, 4));
   lx.ui.addLayer(new UIBeatDetect(lx.ui, beat, 4, 326));
@@ -140,45 +134,6 @@ static class UIOutputControl extends UIWindow {
     new UISlider(4, yPos, width - 8, 20)
     .setParameter(output.brightness)
     .addToContainer(this);
-  }
-}
-
-class CarBodyWalls extends UICameraComponent {
-  protected void onDraw(UI ui) {
-    stroke(#555555);
-    fill(#333333);
-    pushMatrix();
-    translate(model.cx, model.cy-1*FEET, model.cz);
-    box(CAR_BODY_LENGTH, CAR_BODY_HEIGHT, model.zRange * .9);
-    popMatrix(); 
-  }
-}
-
-class CarCabinWalls extends UICameraComponent {
-  final static int CABIN_LENGTH = 6*FEET;
-  final static int CABIN_HEIGHT = 7*FEET;
-  final static int ENGINE_HEIGHT = 5*FEET;
-  
-  float bodyBottom;
-  float bodyFront;
-  
-  protected void onDraw(UI ui) {
-    bodyBottom = model.cy - 1*FEET - CAR_BODY_HEIGHT / 2;
-    bodyFront = model.cx + CAR_BODY_LENGTH/2;
-    stroke(#555555);
-    fill(#333333);
-    
-    // Cabin
-    pushMatrix();
-    translate(bodyFront + CABIN_LENGTH/4, bodyBottom+CABIN_HEIGHT/2, model.cz);
-    box(CABIN_LENGTH/2, CABIN_HEIGHT, model.zRange * .9);
-    popMatrix();
-    
-    // Engine
-    pushMatrix();
-    translate(bodyFront + CABIN_LENGTH*3/4, bodyBottom+ENGINE_HEIGHT/2, model.cz);
-    box(CABIN_LENGTH/2, ENGINE_HEIGHT, model.zRange * .9);
-    popMatrix();
   }
 }
 
