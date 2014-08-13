@@ -18,7 +18,7 @@ Each hit paints the wall with a color. Colors slowly fade (with some randomness)
 
 # MVP
 
--[ ] Basic display of grid
+-[x] Basic display of grid
 -[ ] Orbs appear at locations
 -[ ] Orbs have pleasing colors
 -[ ] Ableton Push creates orbs
