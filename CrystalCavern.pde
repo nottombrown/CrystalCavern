@@ -33,13 +33,14 @@ void setup() {
   // Patterns
   final LXPattern[] patterns;
   lx.setPatterns(patterns = new LXPattern[] {
-    new Plasma(lx),
-    new Warp(lx),
-    new Bouncing(lx),
-    new AuroraBorealis(lx),
-    new Periodicity(lx),
-    new IteratorTestPattern(lx),
-    new ParameterWave(lx),
+    new Game(lx), // For now we only use the game
+//    new Plasma(lx),
+//    new Warp(lx),
+//    new Bouncing(lx),
+//    new AuroraBorealis(lx),
+//    new Periodicity(lx),
+//    new IteratorTestPattern(lx),
+//    new ParameterWave(lx),
     // ...add your new patterns here
   });
   for (LXPattern pattern : patterns) {
@@ -105,9 +106,9 @@ void setup() {
       }
     }
     .setCenter(model.cx, model.cy, model.cz)
-    .setRadius(34*FEET)
+    .setRadius(8*FEET)
     .setTheta(PI/6)
-    .addComponent(new UIPointCloud(lx).setPointWeight(2))
+    .addComponent(new UIPointCloud(lx).setPointWeight(6))
   );
   lx.ui.addLayer(new UIChannelControl(lx.ui, lx, 4, 4));
   lx.ui.addLayer(new UIBeatDetect(lx.ui, beat, 4, 326));
