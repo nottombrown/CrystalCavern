@@ -18,22 +18,22 @@ Again, first player to shiver loses.
 
 # MVP
 
--[x] Basic display of grid
--[x] Orbs appear at locations
--[ ] Orbs have pleasing colors
--[ ] Novation Launchpad creates orbs
--[ ] Show colors on launchpad
--[ ] Color of lights pulse with music
--[ ] Simple animation when a shape is created
--[ ] Only allow one square to be claimed per beat
--[ ] When both players hit the same cube at the same time, it becomes neutral
+- [x] Basic display of grid
+- [x] Orbs appear at locations
+- [ ] Orbs have pleasing colors
+- [ ] Novation Launchpad creates orbs
+- [ ] Show colors on launchpad
+- [ ] Color of lights pulse with music
+- [ ] Simple animation when a shape is created
+- [ ] Only allow one square to be claimed per beat
+- [ ] When both players hit the same cube at the same time, it becomes neutral
 
 = Polish =
 
--[ ] Guard a piece by holding it
--[ ] Amulet button - Restart
--[ ] Allied squares show up together
--[ ] Amulet button - Increase difficulty (in case someone douchey is trying to monopolize the game)
--[x] Standby mode (some cool animation)
--[ ] Display logo (blue triangle? blue diamond in orange triangle?)
--[ ] Waterproofing (play it with your hands in an ice bath)
+- [ ] Guard a piece by holding it
+- [ ] Amulet button - Restart
+- [ ] Allied squares show up together
+- [ ] Amulet button - Increase difficulty (in case someone douchey is trying to monopolize the game)
+- [x] Standby mode (some cool animation)
+- [ ] Display logo (blue triangle? blue diamond in orange triangle?)
+- [ ] Waterproofing (play it with your hands in an ice bath)
