@@ -1,38 +1,39 @@
 # Crystal Cavern
 
-A simple game you play in the freezing cold with a large LED array and an ableton push.
+A two player game that you play in the freezing cold with a large LED array and two launchpads.
 
 # Concept
 
-Sit close to the giant screen, bathed in light. Temperature must be below freezing.
+The two players sit back to back, bathed in light by the giant screen. Temperature must be below freezing.
 
-Each time you lose, you can play again, but you have to give up an article of clothing. Repeat until you get too cold to play.
-
-Anyone turning blue will be immediately disqualified.
+Players who lose can play again, but have to give up an article of clothing. First player to shiver loses.
 
 = Gameplay =
 
-Hit a note on the grid on the beat create a bright circle. The radius is proportional to the loudness of the bass when you the button.
+Hit any button on the grid to claim it. You can only claim once per beat, and it has to be exactly on the beat. The edges of the screen pulse whenever the beat triggers.
 
-Each hit paints the wall with a color. Colors slowly fade (with some randomness) from the screen. If it goes black you lose (and we play a sound).
+If you complete a line of 8 or a square with sides of 3, then the other player has to take off an piece of clothing.
+
+Again, first player to shiver loses.
 
 # MVP
 
 -[x] Basic display of grid
--[ ] Orbs appear at locations
+-[x] Orbs appear at locations
 -[ ] Orbs have pleasing colors
--[ ] Ableton Push creates orbs
--[ ] Size of orb depends on music
--[ ] Orbs fade over time
--[ ] Difficulty increases over time
--[ ] Animation displays when game is over
--[ ] Button to reset difficulty
+-[ ] Novation Launchpad creates orbs
+-[ ] Show colors on launchpad
+-[ ] Color of lights pulse with music
+-[ ] Simple animation when a shape is created
+-[ ] Only allow one square to be claimed per beat
+-[ ] When both players hit the same cube at the same time, it becomes neutral
 
 = Polish =
 
--[ ] Hitting a note lights it up on the push. If you hit the same note again you can increase its radius.
+-[ ] Guard a piece by holding it
 -[ ] Amulet button - Restart
+-[ ] Allied squares show up together
 -[ ] Amulet button - Increase difficulty (in case someone douchey is trying to monopolize the game)
--[ ] Animation when some threshold is reached (2 mins in, 5 mins in). This tells us to give them a prize
--[ ] Standby mode (some cool animation)
+-[x] Standby mode (some cool animation)
 -[ ] Display logo (blue triangle? blue diamond in orange triangle?)
+-[ ] Waterproofing (play it with your hands in an ice bath)
