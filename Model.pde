@@ -10,7 +10,7 @@ import java.util.List;
 
 static class Model extends LXModel {
 
-  public static final int NUM_STRIPS = 24; // Actual number of strips per side
+  public static final int NUM_STRIPS = 24;  // Number of horizontal strips (arranged vertically)
   public static final float STRIP_SPACING = 2.25*INCHES;
 
   public final List<Strip> strips;
@@ -31,9 +31,8 @@ static class Model extends LXModel {
       // Build an array of strips, from top to bottom
       Strip strip;
       
-      // Starboard side 
       for (int i = 0; i < NUM_STRIPS; ++i) {
-        strip = new Strip(0, i*STRIP_SPACING);
+        strip = new Strip((NUM_STRIPS - i)*STRIP_SPACING);
         strips.add(strip);
         addPoints(strip);
       }
@@ -47,22 +46,20 @@ static class Strip extends LXModel {
   public static final int NUM_POINTS_PER_PART = NUM_POINTS;
   public static final float POINT_SPACING = METER / 30.;
 
-  public final float x;
-  public final float z;
+  public final float y;
 
-  Strip(float z, float x) {
-    super(new Fixture(z, x));
-    this.z = z;
-    this.x = x;
+  Strip(float y) {
+    super(new Fixture(y));
+    this.y = y;
   }
 
   private static class Fixture extends LXAbstractFixture {
-    Fixture(float z, float y) {
+    Fixture(float y) {
       /**
-       * Points in each segment are added left to right
+       * Points in each segment are added right to left
       */
       for (int i = 0; i < NUM_POINTS_PER_PART; ++i) {
-        addPoint(new LXPoint((NUM_POINTS_PER_PART + i)*POINT_SPACING, y, z));
+        addPoint(new LXPoint((NUM_POINTS_PER_PART - i)*POINT_SPACING, y, 0));
       }
     }
   }
