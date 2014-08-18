@@ -35,6 +35,7 @@ void setup() {
   lx.setPatterns(patterns = new LXPattern[] {
     new Game(lx), // For now we only use the game
     new Plasma(lx),
+    new Fire(lx),
 //    new Warp(lx),
 //    new Bouncing(lx),
 //    new AuroraBorealis(lx),
