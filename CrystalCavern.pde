@@ -21,6 +21,7 @@ final static int FCSERVER_PORT = 7890;
 // Global engine objects
 Model model;
 P2LX lx;
+GraphicEQ eq;
 FrequencyGate beat;
 
 void setup() {
@@ -33,9 +34,10 @@ void setup() {
   // Patterns
   final LXPattern[] patterns;
   lx.setPatterns(patterns = new LXPattern[] {
-    new Game(lx), // For now we only use the game
     new Plasma(lx),
     new Fire(lx),
+    new Dance(lx),
+    new Game(lx), // For now we only use the game
 //    new Warp(lx),
 //    new Bouncing(lx),
 //    new AuroraBorealis(lx),
@@ -53,7 +55,7 @@ void setup() {
   lx.addEffect(beatMask = new BeatMask(lx));
   
   // Audio detection
-  GraphicEQ eq = new GraphicEQ(lx.audioInput(), 4);
+  eq = new GraphicEQ(lx.audioInput(), 4);
   eq.attack.setValue(10);
   eq.release.setValue(250);
   eq.range.setValue(14);
@@ -115,7 +117,9 @@ void setup() {
   lx.ui.addLayer(new UIBeatDetect(lx.ui, beat, 4, 326));
   lx.ui.addLayer(new UIOutputControl(lx.ui, output, 4, 518));
   lx.ui.addLayer(new UIEffect(lx.ui, beatMask, width - 144, 4));
-  lx.engine.setThreaded(true);
+  lx.engine.setThreaded(false);
+
+  lx.tempo.bpm.setValue(120);
 }
 
 void draw() {

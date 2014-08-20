@@ -10,7 +10,7 @@
     "devices": [
         {
             "type": "fadecandy",
-            "serial": "???",
+            "serial": "LTRNKCOYTHUTYHOF",
             "led": false,
             "location": "inside #0 (top)",
             "layout": "1x8",
@@ -30,7 +30,7 @@
         },
         {
             "type": "fadecandy",
-            "serial": "???",
+            "serial": "PFRLACZJFTMPWBGT",
             "led": false,
             "location": "inside #1 (middle)",
             "layout": "1x8",
@@ -50,7 +50,7 @@
         },
         {
             "type": "fadecandy",
-            "serial": "???",
+            "serial": "VZKODHMIPLEBSTCJ",
             "led": false,
             "location": "inside #2 (bottom)",
             "layout": "1x8",
