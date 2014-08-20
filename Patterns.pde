@@ -447,9 +447,9 @@ public class Dance extends LXPattern {
     
     g.beginDraw();
     g.pushMatrix();
-    g.translate(model.cx / 2, model.cy + 50);
+    g.translate(model.cx / 2 - 15, model.cy + 15);
     g.scale(1, -1);
-    g.scale(0.25);
+    g.scale(0.08);
     g.blendMode(DIFFERENCE);
     g.translate(moves[move].width / 2, 0);
     g.scale(flip, 1);
