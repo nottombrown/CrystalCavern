@@ -51,7 +51,8 @@ void setup() {
     new Tribal(lx), 
     new FuzzyBeats(lx), 
     new Warp(lx), 
-    new Bouncing(lx), 
+    //new Bouncing(lx),
+    new Solid(lx), 
     new Periodicity(lx), 
     //new IteratorTestPattern(lx),
     new ParameterWave(lx), 
@@ -85,7 +86,7 @@ void setup() {
   lx.addModulator(eq).start();
   lx.addModulator(beat).start();
 
-  lx.enableAutoTransition(10000);
+  lx.enableAutoTransition(20000);
 
   // Midi Control
   LXMidiInput qx25input = LXMidiSystem.matchInput(lx, "QX25");

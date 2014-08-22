@@ -3,6 +3,35 @@
 // LFOs, modulators, parameters. They can have transitions
 // between them, layers, effects, etc.
 
+abstract class ImageMappedPattern extends LXPattern {
+  PGraphics g;
+  
+  ImageMappedPattern(LX lx) {
+    super(lx);
+    g = createGraphics(int(model.xRange), int(model.yRange));
+  }
+
+  ImageMappedPattern(LX lx, String mode) {
+    super(lx);
+    g = createGraphics(int(model.xRange), int(model.yRange), mode);
+  }
+
+  abstract void update(double deltaMs);
+
+  public void run(double deltaMs) {
+    update(deltaMs);
+    
+    PImage img = g.get();
+    
+    for (LXPoint p : model.points) {
+      int ix, iy;
+      ix = int((p.x - model.xMin) / model.xMax * img.width); 
+      iy = int((p.y - model.xMin) / model.yMax * img.height);
+      colors[p.index] = img.get(ix, iy);
+    }
+  }
+}
+
 class Periodicity extends LXPattern {
   
   final SinLFO[] pos = new SinLFO[Model.NUM_STRIPS]; 
@@ -185,11 +214,11 @@ class Plasma extends LXPattern {
       float v3 = sin(sqrt(50. * (cx * cx + cy * cy) + 1.) + timeS);
       float v = v1 + v2 + v3;
       
-      colors[p.index] = lx.hsb(
+      colors[p.index] = beatHelpers.beatBrighten(lx.hsb(
         max(0, min(360, sin(v) * hueSpread.getValuef() + hueBase.getValuef())),
         100,
         max(50, min(100, v * 25 + 50))
-      );
+      ), 25);
     }
   }
 }
@@ -356,9 +385,8 @@ public class Fire extends LXPattern {
   }
 }
 
-public class Dance extends LXPattern {
+public class Dance extends ImageMappedPattern {
 
-  PGraphics g;
   final int MOVE_COUNT = 6;
   PImage[] moves = new PImage[MOVE_COUNT];
   int move = 0;
@@ -370,7 +398,7 @@ public class Dance extends LXPattern {
   final int SOURCE_BEAT = 1;
   final int SOURCE_COUNT = 2;
   
-  final DiscreteParameter beatSource = new DiscreteParameter("BTSRC", SOURCE_TEMPO, SOURCE_COUNT);
+  final DiscreteParameter beatSource = new DiscreteParameter("BTSRC", SOURCE_BEAT, SOURCE_COUNT);
 
   BasicParameter speed = new BasicParameter("SPEED", 1, 0, 2);
   
@@ -387,8 +415,6 @@ public class Dance extends LXPattern {
     for (int i = 0; i < MOVE_COUNT; i++) {
       moves[i] = loadImage("images/dance" + Integer.toString(i + 1) + "a.png");
     }
-
-    g = createGraphics(int(model.xRange), int(model.yRange));
   }
   
   color rgb2hsv(float r, float g, float b) {
@@ -422,7 +448,22 @@ public class Dance extends LXPattern {
   
   float timeMs = 0;
   
-  PImage drawImage() {
+  void update(double deltaMs) {
+    timeMs += deltaMs * speed.getValuef();
+   
+    if (beatSource.getValuei() == SOURCE_TEMPO) {
+      if (lx.tempo.beat()) {
+        move = pickMove();
+        flip = random(1) > 0.5 ? 1 : -1;
+      }
+    }
+    else {
+      if (beat.peak()) {
+        move = pickMove();
+        flip = random(1) > 0.5 ? 1 : -1;
+      }
+    }
+
     // grab some samples, hmm could have used lookup table...
     int t = (int)(128 + 127.0 * sin(0.0013 * (float)timeMs));
     int t2 = (int)(128 + 127.0 * sin(0.0023 * (float)timeMs));
@@ -457,8 +498,6 @@ public class Dance extends LXPattern {
     g.image(moves[move], 0, 0);
     g.popMatrix();
     g.endDraw();
-
-    return g.get();
   }
 
   int pickMove() {
@@ -467,38 +506,6 @@ public class Dance extends LXPattern {
       m = int(random(MOVE_COUNT));
     } while (m == move);
     return m;
-  }
-
-  public void run(double deltaMs) {
-    timeMs += deltaMs * speed.getValuef();
-   
-    if (beatSource.getValuei() == SOURCE_TEMPO) {
-      if (lx.tempo.beat()) {
-        move = pickMove();
-        flip = random(1) > 0.5 ? 1 : -1;
-      }
-    }
-    else {
-      if (beat.peak()) {
-        move = pickMove();
-        flip = random(1) > 0.5 ? 1 : -1;
-      }
-    }
-
-    PImage img = drawImage();
-    
-    for (LXPoint p : model.points) {
-      int ix, iy;
-      if (p.z > 0) {
-        ix = int((model.xRange - p.x - 5*FEET) / model.xRange * img.width); 
-        iy = int(p.y / model.yRange * img.height); 
-      }
-      else {
-        ix = int(p.x / model.xRange * img.width); 
-        iy = int(p.y / model.yRange * img.height); 
-      }
-      colors[p.index] = img.get(ix, iy);
-    }
   }
 }
 
@@ -562,7 +569,7 @@ class FuzzyBeats extends LXPattern {
   }
 }
 
-class BubbleBeats extends LXPattern {
+class BubbleBeats extends ImageMappedPattern {
   
   final BasicParameter speed = new BasicParameter("SPEED", 1, 0.1, 10);
   final BasicParameter baseSize = new BasicParameter("SIZE", 45, 30, 150);
@@ -571,24 +578,12 @@ class BubbleBeats extends LXPattern {
   final SawLFO baseHue = new SawLFO(0, 360, 20*SECONDS);
   final SawLFO posOffset = new SawLFO(0, 1, 3*SECONDS);
   
-  final GraphicEQ eq = new GraphicEQ(lx.audioInput(), 4);
-
-  PGraphics g;
-  
   BubbleBeats(LX lx) {
     super(lx);
     addParameter(baseSize);
     addParameter(hueSpread);
     addModulator(baseHue).start();
     addModulator(posOffset).start();
-  
-    eq.attack.setValue(10);
-    eq.release.setValue(250);
-    eq.range.setValue(14);
-    eq.gain.setValue(16);
-    addModulator(eq).start();
-  
-    g = createGraphics(int(model.xRange), int(model.yRange));
   }
 
   void drawBubbles(int startBand, float eqMult, float hue, float xOffs, float yOffs, float bubbleSize) {
@@ -613,7 +608,7 @@ class BubbleBeats extends LXPattern {
     }
   }
 
-  public void run(double deltaMs) {
+  void update(double deltaMs) {
     g.beginDraw();
     g.background(0);
     g.noStroke();
@@ -627,24 +622,15 @@ class BubbleBeats extends LXPattern {
 
     g.popMatrix();
     g.endDraw();
-    
-    PImage img = g.get();
-    
-    for (LXPoint p : model.points) {
-      int ix = int(p.x / model.xRange * img.width); 
-      int iy = int(p.y / model.yRange * img.height); 
-      colors[p.index] = img.get(ix, iy);
-    }
   }
 }
 
-class Tunnel extends LXPattern {
+class Tunnel extends ImageMappedPattern {
   
   final BasicParameter speed = new BasicParameter("SPEED", 1, 0.1, 3);
   final BasicParameter hueBase = new BasicParameter("HUE", 150, 0, 360);
   final BasicParameter hueSpread = new BasicParameter("SPREAD", 60, 1, 360);
 
-  PGraphics g;
   float a = 0;
   float b = 0;
   float c = 0;
@@ -656,11 +642,9 @@ class Tunnel extends LXPattern {
     addParameter(speed);
     addParameter(hueBase);
     addParameter(hueSpread);
-  
-    g = createGraphics(int(model.xRange), int(model.yRange));
   }
 
-  public void run(double deltaMs) {
+  void update(double deltaMs) {
     g.beginDraw();
     g.background(0);
     g.noStroke();
@@ -696,14 +680,6 @@ class Tunnel extends LXPattern {
 
     g.popMatrix();
     g.endDraw();
-    
-    PImage img = g.get();
-    
-    for (LXPoint p : model.points) {
-      int ix = int(p.x / model.xRange * img.width); 
-      int iy = int(p.y / model.yRange * img.height); 
-      colors[p.index] = img.get(ix, iy);
-    }
   }
   
   // ring code from: http://processing.org/discourse/beta/num_1221179611.html
@@ -898,10 +874,8 @@ class Tribal extends LXPattern {
   }
 }
 
-class InfiniteSmileys extends LXPattern {
+class InfiniteSmileys extends ImageMappedPattern {
     
-  PGraphics g;
-  
   PImage[] images;
   float[] xZoomTargets;
   float[] yZoomTargets;
@@ -948,11 +922,9 @@ class InfiniteSmileys extends LXPattern {
     currentZoom = 0.1;
     nextSmiley = 0;
     nextZoom = 0;
-    
-    g = createGraphics(int(model.xRange), int(model.yRange));
   }
 
-  PImage drawImage() {
+  void drawImage() {
     float beatZoom = constrain(eq.getAveragef(1, 4) + 0.8, 1., 1.5);
     
     g.imageMode(CENTER);
@@ -981,8 +953,6 @@ class InfiniteSmileys extends LXPattern {
     }
 
     g.endDraw();
-    
-    return g.get();
   }
 
   float zoomSpeed = 1.02;
@@ -995,7 +965,7 @@ class InfiniteSmileys extends LXPattern {
     return pick;
   }
 
-  void update() {
+  void update(double deltaMs) {
     currentZoom *= zoomSpeed;
     if (currentZoom > maxZooms[currentSmiley]) {
       backgroundColor = backgroundColors[currentSmiley];
@@ -1015,32 +985,14 @@ class InfiniteSmileys extends LXPattern {
     else {
       nextZoom = 0.01;
     }
-  }
-
-  public void run(double deltaMs) {
-    update();
     
-    PImage img = drawImage();
-    
-    for (LXPoint p : model.points) {
-      int ix, iy;
-      if (p.z > 0) {
-        ix = int((model.xRange - p.x - 5*FEET) / model.xRange * img.width); 
-        iy = int(p.y / model.yRange * img.height); 
-      }
-      else {
-        ix = int(p.x / model.xRange * img.width); 
-        iy = int(p.y / model.yRange * img.height); 
-      }
-      colors[p.index] = img.get(ix, iy);
-    }
+    drawImage();
   }
 }
 
-public class TextScroller extends LXPattern {
+public class TextScroller extends ImageMappedPattern {
 
   PFont font;
-  PGraphics g;
   float scrollX = 0;
   float scrollXBeat = 0;
   String[] messages = new String[] {
@@ -1072,11 +1024,10 @@ public class TextScroller extends LXPattern {
     addModulator(hueChange).start();
     
     font = loadFont("AvenirNext-Bold-48.vlw");
-    g = createGraphics(int(model.xRange), int(model.yRange));
     g.textFont(font, 100);
   }
   
-  PImage drawImage() {
+  void drawImage() {
     g.beginDraw();
     g.background(0);
     g.pushMatrix();
@@ -1090,10 +1041,9 @@ public class TextScroller extends LXPattern {
 
     g.popMatrix();
     g.endDraw();
-    return g.get();
   }
   
-  public void run(double deltaMs) {
+  void update(double deltaMs) {
     scale = useBeat.isOn() ? 1 + beat.getValuef() * 0.5 : 1;
     
     float oldScrollX = scrollX;
@@ -1107,20 +1057,7 @@ public class TextScroller extends LXPattern {
       scrollXBeat = 0;
     }
     
-    PImage img = drawImage();
-    
-    for (LXPoint p : model.points) {
-      int ix, iy;
-      if (p.z > 0) {
-        ix = int((model.xRange - p.x - 5*FEET) / model.xRange * img.width); 
-        iy = int(p.y / model.yRange * img.height); 
-      }
-      else {
-        ix = int(p.x / model.xRange * img.width); 
-        iy = int(p.y / model.yRange * img.height); 
-      }
-      colors[p.index] = img.get(ix, iy);
-    }
+    drawImage();
   }
 }
 
@@ -1209,7 +1146,7 @@ public class Logo extends LXPattern {
   }
 }
 
-class HyperCube extends LXPattern {
+class HyperCube extends ImageMappedPattern {
   
   final BasicParameter speed = new BasicParameter("SPEED", 3*SECONDS, 0.5*SECONDS, 5*SECONDS);
   final BasicParameter hueBase = new BasicParameter("BASE", 200, 0, 360);
@@ -1233,7 +1170,7 @@ class HyperCube extends LXPattern {
   final int SOURCE_BEAT = 1;
   final int SOURCE_COUNT = 2;
   
-  final DiscreteParameter beatSource = new DiscreteParameter("BTSRC", SOURCE_TEMPO, SOURCE_COUNT);
+  final DiscreteParameter beatSource = new DiscreteParameter("BTSRC", SOURCE_BEAT, SOURCE_COUNT);
 
   final int COLOR_ROT = 0;
   final int COLOR_BASE = 1;
@@ -1241,10 +1178,8 @@ class HyperCube extends LXPattern {
   
   final DiscreteParameter colorMode = new DiscreteParameter("CLRMODE", COLOR_ROT, COLOR_COUNT);
   
-  PGraphics g;
-
   HyperCube(LX lx) {
-    super(lx);
+    super(lx, P3D);
     addParameter(speed);
     addParameter(hueBase);
     
@@ -1257,8 +1192,6 @@ class HyperCube extends LXPattern {
     addModulator(xRot).start();
     addModulator(yRot).start();
     addModulator(size).start();
-
-    g = createGraphics(int(model.xRange), int(model.yRange), P3D);
   }
 
   public final int OFFS_LEFT = 0;
@@ -1272,7 +1205,7 @@ class HyperCube extends LXPattern {
   int whichOffs = OFFS_LEFT;
   float hue = 0;
   
-  public void run(double deltaMs) {
+  void update(double deltaMs) {
   
     boolean isBeat = beatSource.getValuei() == SOURCE_TEMPO ? lx.tempo.beat() : beat.peak();
   
@@ -1351,27 +1284,11 @@ class HyperCube extends LXPattern {
 
     g.popMatrix();
     g.endDraw();
-    
-    PImage img = g.get();
-    
-    for (LXPoint p : model.points) {
-      int ix, iy;
-      if (p.z > 0) {
-        ix = int((model.xRange - p.x - 5*FEET) / model.xRange * img.width); 
-        iy = int(p.y / model.yRange * img.height); 
-      }
-      else {
-        ix = int(p.x / model.xRange * img.width); 
-        iy = int(p.y / model.yRange * img.height); 
-      }
-      colors[p.index] = img.get(ix, iy);
-    }
   }
 }
 
-public class Grow extends LXPattern {
+public class Grow extends ImageMappedPattern {
 
-  PGraphics g;
   int branchMax = 5;
   float timeS = 0;
   float progress = 0;
@@ -1393,8 +1310,6 @@ public class Grow extends LXPattern {
   Grow(LX lx) {
     super(lx);
     addParameter(speed);
-    
-    g = createGraphics(int(model.xRange), int(model.yRange));
   }
   
   void drawBranch(int step, float left) {
@@ -1433,7 +1348,7 @@ public class Grow extends LXPattern {
     }
   }
   
-  PImage drawImage() {
+  void drawImage() {
     float beatZoom = map(eq.getAveragef(1, 4), 0, 1, 0, 4);
     
     g.beginDraw();
@@ -1455,7 +1370,6 @@ public class Grow extends LXPattern {
 
     g.popMatrix();
     g.endDraw();
-    return g.get();
   }
 
   final int STATE_GROWING = 0;
@@ -1465,7 +1379,7 @@ public class Grow extends LXPattern {
   int state = STATE_GROWING;
   float slideX = 0;
 
-  public void run(double deltaMs) {
+  void update(double deltaMs) {
     timeS += deltaMs / 1000.;
 
     boolean reset = false;      
@@ -1509,20 +1423,7 @@ public class Grow extends LXPattern {
       leafBrightness = 100;//map(random(1), 0, 1, 51, 100);
     }
     
-    PImage img = drawImage();
-    
-    for (LXPoint p : model.points) {
-      int ix, iy;
-      if (p.z > 0) {
-        ix = int((model.xRange - p.x - 5*FEET) / model.xRange * img.width); 
-        iy = int(p.y / model.yRange * img.height); 
-      }
-      else {
-        ix = int(p.x / model.xRange * img.width); 
-        iy = int(p.y / model.yRange * img.height); 
-      }
-      colors[p.index] = img.get(ix, iy);
-    }
+    drawImage();
   }
 }
 
@@ -1587,14 +1488,8 @@ class BlockBase extends LXPattern {
   protected void mapImageToPoints(PImage img) {
     for (LXPoint p : model.points) {
       int ix, iy;
-      if (p.z > 0) {
-        ix = int((model.xRange - p.x - 5*FEET) / model.xRange * img.width); 
-        iy = int(p.y / model.yRange * img.height); 
-      }
-      else {
-        ix = int(p.x / model.xRange * img.width); 
-        iy = int(p.y / model.yRange * img.height); 
-      }
+      ix = int((p.x - model.xMin) / model.xMax * img.width); 
+      iy = int((p.y - model.xMin) / model.yMax * img.height);
       colors[p.index] = img.get(ix, iy);
     }
   }
@@ -1911,5 +1806,113 @@ class BlockSpiral extends BlockBase {
   }
 }
 
+class Solid extends LXPattern {
+  
+  color clr;
+  float time = 0;
+  
+  Solid(LX lx) {
+    super(lx);
+    pickColor();
+  }
+  
+  void pickColor() {
+    clr = color(random(360), 100, 80);
+  }
+  
+  public void run(double deltaMs) {
+    time += deltaMs / 1000.;
+    if (time > 30) {
+      time = 0;
+      pickColor();
+    }
+    
+    for (LXPoint p : model.points) {
+      colors[p.index] = beatHelpers.beatBrighten(clr, 20);
+    }
+  }
+}
 
+class BeatHelpers {
+  color beatBrighten(color in, float mult) {
+    float _hue = hue(in);
+    float sat = saturation(in);
+    float bri = brightness(in);
+    float toAdd = eq.getAveragef(1, 4) * mult;
+    if (toAdd > 100 - bri) {
+      if (bri == 0) {  // assume this is meant as black -- don't turn it into red
+        bri = 100;
+      }
+      else {
+        bri = 100;
+        sat -= toAdd - (100 - bri);
+      }
+    }
+    else {
+      bri += toAdd;
+    }
+    return lx.hsb(
+      hue(in),
+      constrain(sat, 0, 100),
+      constrain(bri, 0, 100)
+    );
+  }
+
+  color beatBrighten(color in, float mult, int startBand) {
+    float sat = saturation(in);
+    float bri = brightness(in);
+    float toAdd = eq.getAveragef(startBand, 4) * mult;
+    if (toAdd > 100 - bri) {
+      bri = 100;
+      sat -= toAdd - (100 - bri);
+    }
+    else {
+      bri += toAdd;
+    }
+    return lx.hsb(
+      hue(in),
+      constrain(sat, 0, 100),
+      constrain(bri, 0, 100)
+    );
+  }
+  
+  color beatFlash(color in) {
+    float sat = saturation(in);
+    float bri = brightness(in);
+    float toAdd = beat.getValuef() * 25;
+    if (toAdd > 100 - bri) {
+      float left = toAdd - (100 - bri); 
+      bri = 100;
+      sat -= left;
+    }
+    else {
+      bri += toAdd;
+    }
+    return lx.hsb(
+      hue(in),
+      constrain(sat, 0, 100),
+      constrain(bri, 0, 100)
+    );
+  }
+
+  color beatFlash(color in, float mult) {
+    float sat = saturation(in);
+    float bri = brightness(in);
+    float toAdd = sqrt(beat.getValuef()) * mult * 2;
+    if (toAdd > 100 - bri) {
+      bri = 100;
+      sat -= toAdd - (100 - bri);
+    }
+    else {
+      bri += toAdd;
+    }
+    return lx.hsb(
+      hue(in),
+      constrain(sat, 0, 100),
+      constrain(bri, 0, 100)
+    );
+  }
+}
+
+BeatHelpers beatHelpers = new BeatHelpers();
 
