@@ -16,7 +16,7 @@ final static float METER = 39.37*INCHES;
 
 // fcserver configuration
 final static String FCSERVER_HOST = "127.0.0.1";
-final static int FCSERVER_PORT = 7890;
+final static int FCSERVER_PORT = 7891;
 
 // Global engine objects
 Model model;
