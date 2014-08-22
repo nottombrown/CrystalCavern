@@ -34,16 +34,34 @@ void setup() {
   // Patterns
   final LXPattern[] patterns;
   lx.setPatterns(patterns = new LXPattern[] {
-    new Plasma(lx),
-    new Fire(lx),
-    new Dance(lx),
-    new Game(lx), // For now we only use the game
-//    new Warp(lx),
-//    new Bouncing(lx),
-//    new AuroraBorealis(lx),
-//    new Periodicity(lx),
-//    new IteratorTestPattern(lx),
-//    new ParameterWave(lx),
+    new Plasma(lx), 
+    new Grow(lx), 
+    new BubbleBeats(lx), 
+    new Fire(lx), 
+    new Tunnel(lx), 
+    new AuroraBorealis(lx), 
+    new BlockRandom(lx), 
+    new BlockSpiral(lx), 
+    new BlockShift(lx), 
+    new Dance(lx), 
+    new HyperCube(lx), 
+    //new Logo(lx),
+    new InfiniteSmileys(lx), 
+    new TextScroller(lx), 
+    new Tribal(lx), 
+    new FuzzyBeats(lx), 
+    new Warp(lx), 
+    new Bouncing(lx), 
+    new Periodicity(lx), 
+    //new IteratorTestPattern(lx),
+    new ParameterWave(lx), 
+    //new Game(lx), // For now we only use the game
+    //    new Warp(lx),
+    //    new Bouncing(lx),
+    //    new AuroraBorealis(lx),
+    //    new Periodicity(lx),
+    //    new IteratorTestPattern(lx),
+    //    new ParameterWave(lx),
     // ...add your new patterns here
   });
   for (LXPattern pattern : patterns) {
@@ -66,7 +84,9 @@ void setup() {
   beat.release.setValue(480);
   lx.addModulator(eq).start();
   lx.addModulator(beat).start();
-  
+
+  lx.enableAutoTransition(10000);
+
   // Midi Control
   LXMidiInput qx25input = LXMidiSystem.matchInput(lx, "QX25");
   if (qx25input != null) {
@@ -81,6 +101,20 @@ void setup() {
       
       public void controlChange(LXMidiControlChange cc) {
         println("cc:" + cc.getCC() + ":" + cc.getValue());
+
+
+        // for custom pattern-specific controls (nothing coded yet)
+        lx.getPattern().controlChangeReceived(cc);
+
+        int param = cc.getCC() - 14;
+        if (param >= 0 && param < 10) {
+          // assumes basic parameter
+          ((BasicParameter) lx.getPattern().getParameters().get(param)).setNormalized(cc.getValue() / 127.);
+          println("val", cc.getValue() / 127., ((BasicParameter) lx.getPattern().getParameters().get(param)).getNormalized(), ((BasicParameter) lx.getPattern().getParameters().get(param)).getValuef());
+        }
+
+        //Broadcast message with current pattern / param states
+        //oscP5.send(currentStateMessage(-1), netAddressList);
       }
     };
     
@@ -160,5 +194,30 @@ static class UIEffect extends UIWindow {
       }
     }
   }
+}
+
+void keyPressed() {
+  println(keyCode);
+
+  switch (keyCode) {
+  case 27:
+  case 116:
+    // TODO
+    break;
+
+  case 33: // left
+    lx.goPrev();
+    break;
+
+  case 34: // right
+    lx.goNext();
+    break;
+
+  case 66: // b
+    lx.goNext();
+    break;
+  }
+
+  if (key == ESC) key = 0; // trap ESC so it doesn't quit
 }
 
